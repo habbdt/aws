@@ -13,7 +13,7 @@ then
           get-bucket-acl,get-bucket-encryption, get-bucket-versioning,
           get-bucket-replication,get-bucket-tagging,get-bucket-website,
           get-bucket-request-payment,get-bucket-notification-configuration,get-bucket-policy-status,
-          get-bucket-location,get-bucket-lifecycle-configuration"
+          get-bucket-location,get-bucket-lifecycle-configuration,get-bucket-size"
     exit
 fi
 
@@ -172,6 +172,18 @@ function   get-bucket-lifecycle-configuration() {
   done
 }
 
+# check buckets size
+
+function get-bucket-size() {
+    echo "BUCKET_NAME, BUCKET_SIZE (MB)"
+    for bucket in $BUCKETS; do
+      BUCKET_SIZE="$(aws s3 ls s3://$bucket --summarize --human-readable --recursive \
+                     | egrep "Total Size" | cut -d ":" -f2-)"
+
+      echo "$bucket, $BUCKET_SIZE"
+    done
+}
+
 # case
 
 case $SVC in
@@ -194,6 +206,7 @@ case $SVC in
     get-bucket-policy-status
     get-bucket-location
     get-bucket-lifecycle-configuration
+    get-bucket-size
     ;;
 
   get-bucket-acl)
@@ -238,6 +251,10 @@ case $SVC in
 
   get-bucket-lifecycle-configuration)
     get-bucket-lifecycle-configuration
+    ;;
+
+  get-bucket-size)
+    get-bucket-size
     ;;
 
 esac
