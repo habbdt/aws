@@ -13,7 +13,7 @@ then
           get-bucket-acl,get-bucket-encryption, get-bucket-versioning,
           get-bucket-replication,get-bucket-tagging,get-bucket-website,
           get-bucket-request-payment,get-bucket-notification-configuration,get-bucket-policy-status,
-          get-bucket-location,get-bucket-lifecycle-configuration,get-bucket-size"
+          get-bucket-location,get-bucket-lifecycle-configuration,get-bucket-size, get-lifecycle-details"
     exit
 fi
 
@@ -184,6 +184,25 @@ function get-bucket-size() {
     done
 }
 
+# get buckets lifecycle details
+function get-lifecycle-details() {
+    echo "BUCKET_NAME, EXPIRATION,TRANSITION_SC,TRANSITION_DAYS"
+    for bucket in $BUCKETS; do
+      LIFECYCLE="$(aws s3api get-bucket-lifecycle --bucket  $bucket >/dev/null 2>&1)"
+      RETVAL=$?
+
+      if [ $RETVAL -ne 0 ]
+      then
+        echo "$bucket, NO-LIFECYCLE, NO-LIFECYCLE, NO-LIFECYCLE"
+      else
+        EXPIRATION="$(aws s3api get-bucket-lifecycle --bucket $bucket| jq '.Rules|.[].Expiration.Days')"
+        TRANSITION_SC="$(aws s3api get-bucket-lifecycle --bucket $bucket | jq '.Rules|.[].Transition.StorageClass')"
+        TRANSITION_DAYS="$(aws s3api get-bucket-lifecycle --bucket $bucket | jq '.Rules|.[].Expiration.Days')"
+        echo "$bucket, $EXPIRATION, $TRANSITION_SC, $TRANSITION_DAYS"
+      fi
+    done
+}
+
 # case
 
 case $SVC in
@@ -207,6 +226,7 @@ case $SVC in
     get-bucket-location
     get-bucket-lifecycle-configuration
     get-bucket-size
+    get-lifecycle-details
     ;;
 
   get-bucket-acl)
@@ -257,4 +277,7 @@ case $SVC in
     get-bucket-size
     ;;
 
+  get-lifecycle-details)
+    get-lifecycle-details
+    ;;
 esac
