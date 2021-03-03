@@ -186,19 +186,17 @@ function get-bucket-size() {
 
 # get buckets lifecycle details
 function get-lifecycle-details() {
-    echo "BUCKET_NAME, EXPIRATION,TRANSITION_SC,TRANSITION_DAYS"
+    echo "BUCKET_NAME, EXPIRATION"
     for bucket in $BUCKETS; do
       LIFECYCLE="$(aws s3api get-bucket-lifecycle --bucket  $bucket >/dev/null 2>&1)"
       RETVAL=$?
 
       if [ $RETVAL -ne 0 ]
       then
-        echo "$bucket, NO-LIFECYCLE, NO-LIFECYCLE, NO-LIFECYCLE"
+        echo "$bucket, NO-LIFECYCLE"
       else
         EXPIRATION="$(aws s3api get-bucket-lifecycle --bucket $bucket| jq '.Rules|.[].Expiration.Days')"
-        TRANSITION_SC="$(aws s3api get-bucket-lifecycle --bucket $bucket | jq '.Rules|.[].Transition.StorageClass')"
-        TRANSITION_DAYS="$(aws s3api get-bucket-lifecycle --bucket $bucket | jq '.Rules|.[].Expiration.Days')"
-        echo "$bucket, $EXPIRATION, $TRANSITION_SC, $TRANSITION_DAYS"
+        echo "$bucket, $EXPIRATION"
       fi
     done
 }
