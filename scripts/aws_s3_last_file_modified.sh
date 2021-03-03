@@ -34,13 +34,13 @@ function all-buckets() {
 # last object modified - specific bucket
 function specific_bucket_name() {
     BUCKET=$OPTIONS
-    TIMESTAMP_LAST_MODIFIED="$(aws s3 ls $bucket --recursive | sort | tail -n 3)"
+    TIMESTAMP_LAST_MODIFIED="$(aws s3 ls $BUCKET --recursive | sort | tail -n 3)"
     if [ -z "$TIMESTAMP_LAST_MODIFIED" ]
     then
-      echo "bucket - $bucket is EMPTY"
+      echo "bucket - $BUCKET is EMPTY"
       echo ""
     else
-      echo "bucket - $bucket: last file modified"
+      echo "bucket - $BUCKET: last file modified"
       echo "$TIMESTAMP_LAST_MODIFIED"
       echo ""
     fi
