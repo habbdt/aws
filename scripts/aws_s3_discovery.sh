@@ -30,17 +30,18 @@ function discover() {
       LIFECYCLE="$(aws s3api get-bucket-lifecycle --bucket  $bucket >/dev/null 2>&1)"
       RETVAL=$?
 
-      if [ -z "$TIMESTAMP_LAST_MODIFIED" ]
+      if [ $RETVAL -ne 0 ]
       then
-        #echo "empty bucket"
-        if [ $RETVAL -ne 0 ]
+        # no lifecycle policy - object will reside ever
+        if [ -z "$TIMESTAMP_LAST_MODIFIED" ]
         then
-          #echo "no lifecycle"
+          # bucket is empty
           echo "$bucket, NO_LIFECYCLE, $CREATION_TIME,EMPTY_BUCKET,$BUCKET_LOCATION"
         else
-          EXPIRATION="$(aws s3api get-bucket-lifecycle --bucket $bucket| jq '.Rules|.[].Expiration.Days')"
+          :
         fi
       else
+        EXPIRATION="$(aws s3api get-bucket-lifecycle --bucket $bucket| jq '.Rules|.[].Expiration.Days')"
         echo "$bucket, $EXPIRATION, $CREATION_TIME, $TIMESTAMP_LAST_MODIFIED, $BUCKET_LOCATION"
       fi
     done
