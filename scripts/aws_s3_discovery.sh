@@ -12,7 +12,7 @@
 
 BUCKETS="$(aws s3api list-buckets --query 'Buckets[].Name' | jq '.[]' | sed 's/\"//g' | tr ' ' '\n')"
 BUCKET_CREATION_TIMESTAMP="$(aws s3api list-buckets | jq '.Buckets |.[]|  join(", ")'  | sed 's/"//g' >> /tmp/buckets_creation.tmp)"
-echo "Bucket Name, Expiry(days), Created At(ctime), Last Modified (mtime), Location"
+echo "Bucket Name, Size, Expiry(days), Created At(ctime), Last Modified (mtime), Location"
 
 function discover() {
     for bucket in $BUCKETS; do
@@ -26,6 +26,10 @@ function discover() {
       # bucket creation timestamp
       CREATION_TIME="$(egrep $bucket /tmp/buckets_creation.tmp | cut -d "," -f2 |xargs)"
 
+      # get bucket size
+      BUCKET_SIZE="$(aws s3 ls s3://$bucket --summarize --human-readable --recursive \
+                     | egrep "Total Size" | cut -d ":" -f2-)"
+
       # lifecycle expiry
       LIFECYCLE="$(aws s3api get-bucket-lifecycle --bucket  $bucket >/dev/null 2>&1)"
       RETVAL=$?
@@ -36,13 +40,13 @@ function discover() {
         if [ -z "$TIMESTAMP_LAST_MODIFIED" ]
         then
           # bucket is empty
-          echo "$bucket, NO_LIFECYCLE, $CREATION_TIME,EMPTY_BUCKET,$BUCKET_LOCATION"
+          echo "$bucket, $BUCKET_SIZE, NO_LIFECYCLE, $CREATION_TIME,EMPTY_BUCKET,$BUCKET_LOCATION"
         else
           :
         fi
       else
         EXPIRATION="$(aws s3api get-bucket-lifecycle --bucket $bucket| jq '.Rules|.[].Expiration.Days')"
-        echo "$bucket, $EXPIRATION, $CREATION_TIME, $TIMESTAMP_LAST_MODIFIED, $BUCKET_LOCATION"
+        echo "$bucket, $BUCKET_SIZE, $EXPIRATION, $CREATION_TIME, $TIMESTAMP_LAST_MODIFIED, $BUCKET_LOCATION"
       fi
     done
 }
