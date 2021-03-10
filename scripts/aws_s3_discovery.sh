@@ -12,7 +12,7 @@
 
 BUCKETS="$(aws s3api list-buckets --query 'Buckets[].Name' | jq '.[]' | sed 's/\"//g' | tr ' ' '\n')"
 BUCKET_CREATION_TIMESTAMP="$(aws s3api list-buckets | jq '.Buckets |.[]|  join(", ")'  | sed 's/"//g' >> /tmp/buckets_creation.tmp)"
-echo "BUCKET_NAME,NO_LIFECYCLE,CREATION_TIME,EMPTY_BUCKET,BUCKET_LOCATION"
+echo "Bucket Name, Expiry(days), Created At(ctime), Last Modified (mtime), Location"
 
 function discover() {
     for bucket in $BUCKETS; do
